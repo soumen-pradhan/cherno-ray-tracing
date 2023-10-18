@@ -1,0 +1,17 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "cherno-walnut",
+    "version": "0.0.0",
+    "dependencies": [
+        {
+            "name": "fmt",
+            "version>=": "10.1.0"
+        },
+        {
+            "name": "imgui",
+            "version>=": "1.89.9",
+            "features": ["docking-experimental", "glfw-binding", "vulkan-binding"]
+        }
+    ],
+    "builtin-baseline": "db0473513e5dc73ec6b6f431ff05d2f398eea042"
+}
