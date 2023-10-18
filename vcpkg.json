@@ -11,6 +11,18 @@
             "name": "imgui",
             "version>=": "1.89.9",
             "features": ["docking-experimental", "glfw-binding", "vulkan-binding"]
+        },
+        {
+            "name": "glfw3",
+            "version>=": "3.3.8"
+        },
+        {
+            "name": "glm",
+            "version>=": "2023-06-08"
+        },
+        {
+            "name": "stb",
+            "version>=": "2023-04-11"
         }
     ],
     "builtin-baseline": "db0473513e5dc73ec6b6f431ff05d2f398eea042"
