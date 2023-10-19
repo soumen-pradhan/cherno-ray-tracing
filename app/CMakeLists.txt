@@ -13,8 +13,11 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 include(CTest)
 enable_testing()
 
+# Header files are included for intellisense
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/Renderer.h
+    src/Renderer.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -25,6 +28,14 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     fmt::fmt
     Walnut
 )
+
+# WIN gui app.
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE
+        $<IF:$<CONFIG:Release>,true,false>
+    )
+endif()
 
 # Ask a compiler to be more demanding
 target_compile_options(${PROJECT_NAME} PRIVATE
