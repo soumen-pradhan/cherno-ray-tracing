@@ -9,6 +9,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(Stb REQUIRED)
+find_package(Vulkan REQUIRED)
 
 # Disable static runtime
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
@@ -23,32 +24,39 @@ add_library(${PROJECT_NAME} STATIC
 )
 
 # # Include directories
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${PROJECT_NAME} PUBLIC
     src
     ${Stb_INCLUDE_DIR}
 )
 
 # # Link libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    imgui::imgui
-    glfw
-    glm::glm
-    Vulkan::Vulkan
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        imgui::imgui
+        glfw
+        glm::glm
+    PUBLIC
+        Vulkan::Vulkan
 )
 
 # Windows-specific settings
-if(WIN32)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC
         WL_PLATFORM_WINDOWS
     )
 endif()
 
+target_compile_definitions(${PROJECT_NAME} PUBLIC
+    $<$<CONFIG:Debug>:WL_DEBUG>
+    $<$<CONFIG:RelWithDebInfo>:WL_RELEASE>
+    $<$<CONFIG:Release>:WL_DIST>
+)
+
 # Ask a compiler to be more demanding
-if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX /permissive-)
-else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif()
+target_compile_options(${PROJECT_NAME} PRIVATE
+  $<$<CXX_COMPILER_ID:MSVC>:/W3 /WX /permissive->
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
