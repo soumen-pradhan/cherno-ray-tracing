@@ -23,13 +23,13 @@ add_library(${PROJECT_NAME} STATIC
     src/Walnut/Random.cpp
 )
 
-# # Include directories
+# Include directories
 target_include_directories(${PROJECT_NAME} PUBLIC
     src
     ${Stb_INCLUDE_DIR}
 )
 
-# # Link libraries
+# Link libraries
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         imgui::imgui
