@@ -18,6 +18,9 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/Renderer.h
     src/Renderer.cpp
+    src/Camera.h
+    src/Camera.cpp
+    src/Ray.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

@@ -6,20 +6,28 @@
 
 #include <fmt/format.h>
 
+#include "Camera.h"
 #include "Renderer.h"
 
 class ExampleLayer : public Walnut::Layer {
 public:
+    ExampleLayer()
+        : m_Camera(45.0f, 0.1f, 100.0f)
+    {
+    }
+
+    virtual void OnUpdate(float ts) override
+    {
+        m_Camera.OnUpdate(ts);
+    }
+
     virtual void OnUIRender() override
     {
         {
             ImGui::Begin("Settings");
 
             ImGui::Text("Last render: %.3fms", m_LastRenderTime);
-
-            if (ImGui::Button("Render")) {
-                Render();
-            }
+            ImGui::SliderFloat3("Light Dir", m_Renderer.lightDir, -2, 2);
 
             ImGui::End();
         }
@@ -27,8 +35,8 @@ public:
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
             ImGui::Begin("Viewport");
 
-            m_ViewportWidth = static_cast<uint32_t>(ImGui::GetContentRegionAvail().x);
-            m_ViewportHeight = static_cast<uint32_t>(ImGui::GetContentRegionAvail().y);
+            m_ViewportWidth = (uint32_t)ImGui::GetContentRegionAvail().x;
+            m_ViewportHeight = (uint32_t)ImGui::GetContentRegionAvail().y;
 
             auto image = m_Renderer.GetFinalImage();
             if (image) {
@@ -49,13 +57,15 @@ public:
         Walnut::Timer timer;
 
         m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
-        m_Renderer.Render();
+        m_Camera.OnResize(m_ViewportWidth, m_ViewportHeight);
+        m_Renderer.Render(m_Camera);
 
         m_LastRenderTime = timer.ElapsedMillis();
     }
 
 private:
     Renderer m_Renderer;
+    Camera m_Camera;
     uint32_t m_ViewportWidth, m_ViewportHeight;
 
     float m_LastRenderTime = 0;
@@ -68,13 +78,13 @@ Walnut::Application* Walnut::CreateApplication(int argc, char** argv)
 
     Walnut::Application* app = new Walnut::Application(spec);
     app->PushLayer<ExampleLayer>();
-    app->SetMenubarCallback([app]() {
-        if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Exit")) {
-                app->Close();
-            }
-            ImGui::EndMenu();
-        }
-    });
+    // app->SetMenubarCallback([app]() {
+    //     if (ImGui::BeginMenu("File")) {
+    //         if (ImGui::MenuItem("Exit")) {
+    //             app->Close();
+    //         }
+    //         ImGui::EndMenu();
+    //     }
+    // });
     return app;
 }
