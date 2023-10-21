@@ -50,16 +50,14 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
 {
     uint32_t wt = m_FinalImage->GetWidth(), ht = m_FinalImage->GetHeight();
 
-    auto& rayDirs = camera.GetRayDirections();
-
-    Ray ray = { .Origin = camera.GetPosition() };
+    m_ActiveScene = &scene;
+    m_ActiveCamera = &camera;
 
     for (uint32_t y = 0; y < ht; y++) {
         for (uint32_t x = 0; x < wt; x++) {
-            ray.Direction = rayDirs[x + y * wt];
-
-            auto color = TraceRay(scene, ray);
+            auto color = PerPixel(x, y);
             color = glm::clamp(color, { 0 }, { 1 });
+
             m_ImageData[x + y * wt] = Utils::Vec2Rgba(color);
         }
     }
@@ -67,25 +65,39 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
     m_FinalImage->SetData(m_ImageData);
 }
 
-glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray)
+glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
 {
-    // (bx^2 + by^2) t^2 + (2 (axbx + ayby)) t + (ax^2 + ay^2 - r^2) = 0
-    // At^2 + Bt + C = 0
-    // where
-    // a = ray origin
-    // b = ray dir
-    // r = radius
-    // t = hit dist
+    auto imgWt = m_FinalImage->GetWidth();
+    Ray ray = {
+        .Origin = m_ActiveCamera->GetPosition(),
+        .Direction = m_ActiveCamera->GetRayDirections()[x + y * imgWt]
+    };
 
-    if (scene.Spheres.empty()) {
+    auto payload = TraceRay(ray);
+
+    if (payload.HitDist < 0.0f) {
         return glm::vec4(Color::Black, 1.0f);
     }
 
-    const Sphere* closestSphere = nullptr;
+    auto light = glm::normalize(LightDir);
+    float lightIntensity = glm::max(
+        0.0f,
+        glm::dot(payload.WorldNormal, -light));
+
+    auto& sphere = m_ActiveScene->Spheres[payload.ObjectIdx];
+    auto sphereColor = sphere.Albedo * lightIntensity;
+
+    return glm::vec4(sphereColor, 1.0f);
+}
+
+Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
+{
+    int closestSphereIdx = -1;
     float hitDist = Utils::Inf;
 
-    for (auto& sphere : scene.Spheres) {
-        glm::vec3 origin = ray.Origin - sphere.Pos;
+    for (int idx = 0; idx < m_ActiveScene->Spheres.size(); idx++) {
+        auto& sphere = m_ActiveScene->Spheres[idx];
+        auto origin = ray.Origin - sphere.Pos;
 
         float A = glm::dot(ray.Direction, ray.Direction);
         float B = 2.0f * glm::dot(origin, ray.Direction);
@@ -102,27 +114,37 @@ glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray)
         // float t0 = (-B + glm::sqrt(discriminant)) / (2.0f * A);
         float closestHit = (-B - glm::sqrt(discriminant)) / (2.0f * A);
 
-        if (closestHit < hitDist) {
+        if (/* closestHit > 0.0f &&  */ closestHit < hitDist) {
             hitDist = closestHit;
-            closestSphere = &sphere;
+            closestSphereIdx = idx;
         }
+
     }
 
-    if (!closestSphere) {
-        return glm::vec4(Color::Black, 1.0f);
+    if (closestSphereIdx < 0.0f) {
+        return Miss(ray);
     }
 
-    // hit pos
-    glm::vec3 origin = ray.Origin - closestSphere->Pos;
-    glm::vec3 hitPoint = ray.Origin + ray.Direction * hitDist;
-    glm::vec3 normal = glm::normalize(hitPoint);
+    return ClosestHit(ray, hitDist, closestSphereIdx);
+}
 
-    // glm::vec3 light = glm::normalize(glm::vec3(-1, -1, -1));
-    auto light = glm::normalize(LightDir);
-    float lightComp = glm::max(glm::dot(normal, -light), 0.0f);
+Renderer::HitPayload Renderer::ClosestHit(const Ray& ray, float hitDist, int objectIdx)
+{
+    auto& closestSphere = m_ActiveScene->Spheres[objectIdx];
+    auto shiftedOrigin = ray.Origin - closestSphere.Pos;
+    auto shiftedWorldPos = shiftedOrigin + ray.Direction * hitDist;
 
-    glm::vec3 sphereColor = closestSphere->Albedo;
-    sphereColor *= lightComp;
+    return HitPayload {
+        .HitDist = hitDist,
+        .WorldPos = shiftedWorldPos + closestSphere.Pos,
+        .WorldNormal = glm::normalize(shiftedWorldPos),
+        .ObjectIdx = objectIdx
+    };
+}
 
-    return glm::vec4(sphereColor, 1.0f);
+Renderer::HitPayload Renderer::Miss(const Ray& ray)
+{
+    return HitPayload {
+        .HitDist = -1.0f
+    };
 }

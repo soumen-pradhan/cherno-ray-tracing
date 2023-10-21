@@ -23,15 +23,28 @@ public:
     glm::vec3 LightDir { -1, -1, -1 };
 
 private:
+    struct HitPayload {
+        float HitDist;
+        glm::vec3 WorldPos, WorldNormal;
+        int ObjectIdx;
+    };
+
+    glm::vec4 PerPixel(uint32_t x, uint32_t y);
+
     /**
      * @brief Converts camera ray to a RGBA color.
      * @param ray Origin and Direction of camera
      */
-    glm::vec4 TraceRay(const Scene& scene, const Ray& ray);
+    HitPayload TraceRay(const Ray& ray);
+    HitPayload ClosestHit(const Ray& ray, float hitDist, int objectIdx);
+    HitPayload Miss(const Ray& ray);
 
 private:
     std::shared_ptr<Walnut::Image> m_FinalImage;
     uint32_t* m_ImageData = nullptr;
+
+    const Scene* m_ActiveScene = nullptr;
+    const Camera* m_ActiveCamera = nullptr;
 };
 
 #endif // RENDERER_H
