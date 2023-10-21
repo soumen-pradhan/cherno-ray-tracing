@@ -21,6 +21,8 @@ add_executable(${PROJECT_NAME}
     src/Camera.h
     src/Camera.cpp
     src/Ray.h
+    src/Color.h
+    src/Scene.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

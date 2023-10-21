@@ -1,8 +1,9 @@
-#include "Renderer.h"
-#include "Walnut/Random.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "Color.h"
+#include "Renderer.h"
+#include "Walnut/Random.h"
 
 namespace Utils {
 
@@ -20,6 +21,8 @@ static uint32_t Vec2Rgba(const glm::vec4& color)
     // aa | bb | gg | rr -> 8 bytes
     return (a << 24) | (b << 16) | (g << 8) | r;
 }
+
+const float Inf = std::numeric_limits<float>::max();
 
 }
 
@@ -43,7 +46,7 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
     m_ImageData = new uint32_t[imgBufferLen];
 }
 
-void Renderer::Render(const Camera& camera)
+void Renderer::Render(const Scene& scene, const Camera& camera)
 {
     uint32_t wt = m_FinalImage->GetWidth(), ht = m_FinalImage->GetHeight();
 
@@ -55,7 +58,7 @@ void Renderer::Render(const Camera& camera)
         for (uint32_t x = 0; x < wt; x++) {
             ray.Direction = rayDirs[x + y * wt];
 
-            auto color = TraceRay(ray);
+            auto color = TraceRay(scene, ray);
             color = glm::clamp(color, { 0 }, { 1 });
             m_ImageData[x + y * wt] = Utils::Vec2Rgba(color);
         }
@@ -64,46 +67,61 @@ void Renderer::Render(const Camera& camera)
     m_FinalImage->SetData(m_ImageData);
 }
 
-glm::vec4 Renderer::TraceRay(const Ray& ray)
+glm::vec4 Renderer::TraceRay(const Scene& scene, const Ray& ray)
 {
-      float radius = 0.5f; // clip-space -1 -> 1
+    // (bx^2 + by^2) t^2 + (2 (axbx + ayby)) t + (ax^2 + ay^2 - r^2) = 0
+    // At^2 + Bt + C = 0
+    // where
+    // a = ray origin
+    // b = ray dir
+    // r = radius
+    // t = hit dist
 
-    /**
-     * (bx^2 + by^2) t^2 + (2 (axbx + ayby)) t + (ax^2 + ay^2 - r^2) = 0
-     * At^2 + Bt + C = 0
-     * where
-     * a = ray origin
-     * b = ray dir
-     * r = radius
-     * t = hit dist
-     */
-
-    float A = glm::dot(ray.Direction, ray.Direction);
-    float B = 2.0f * glm::dot(ray.Origin, ray.Direction);
-    float C = glm::dot(ray.Origin, ray.Origin) - radius * radius;
-
-    // B^2 - 4AC
-    float discriminant = B * B - 4.0F * A * C;
-
-    if (discriminant < 0.0f) {
-        return glm::vec4(0, 0, 0, 1); // black
+    if (scene.Spheres.empty()) {
+        return glm::vec4(Color::Black, 1.0f);
     }
 
-    // 2 roots: (-B ± √D) / 2A
-    float t0 = (-B + glm::sqrt(discriminant)) / (2.0f * A);
-    float t1 = (-B - glm::sqrt(discriminant)) / (2.0f * A);
+    const Sphere* closestSphere = nullptr;
+    float hitDist = Utils::Inf;
 
-    float closestHit = t1;
+    for (auto& sphere : scene.Spheres) {
+        glm::vec3 origin = ray.Origin - sphere.Pos;
+
+        float A = glm::dot(ray.Direction, ray.Direction);
+        float B = 2.0f * glm::dot(origin, ray.Direction);
+        float C = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
+
+        // B^2 - 4AC
+        float discriminant = B * B - 4.0F * A * C;
+
+        if (discriminant < 0.0f) {
+            continue;
+        }
+
+        // 2 roots: (-B ± √D) / 2A
+        // float t0 = (-B + glm::sqrt(discriminant)) / (2.0f * A);
+        float closestHit = (-B - glm::sqrt(discriminant)) / (2.0f * A);
+
+        if (closestHit < hitDist) {
+            hitDist = closestHit;
+            closestSphere = &sphere;
+        }
+    }
+
+    if (!closestSphere) {
+        return glm::vec4(Color::Black, 1.0f);
+    }
 
     // hit pos
-    glm::vec3 hitPoint = ray.Origin + ray.Direction * closestHit;
+    glm::vec3 origin = ray.Origin - closestSphere->Pos;
+    glm::vec3 hitPoint = ray.Origin + ray.Direction * hitDist;
     glm::vec3 normal = glm::normalize(hitPoint);
 
     // glm::vec3 light = glm::normalize(glm::vec3(-1, -1, -1));
-    auto light = glm::normalize(glm::make_vec3(lightDir));
+    auto light = glm::normalize(LightDir);
     float lightComp = glm::max(glm::dot(normal, -light), 0.0f);
 
-    glm::vec3 sphereColor(1, 0, 1);
+    glm::vec3 sphereColor = closestSphere->Albedo;
     sphereColor *= lightComp;
 
     return glm::vec4(sphereColor, 1.0f);

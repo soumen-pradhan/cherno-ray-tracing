@@ -6,7 +6,10 @@
 
 #include <fmt/format.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Camera.h"
+#include "Color.h"
 #include "Renderer.h"
 
 class ExampleLayer : public Walnut::Layer {
@@ -14,6 +17,22 @@ public:
     ExampleLayer()
         : m_Camera(45.0f, 0.1f, 100.0f)
     {
+        {
+            Sphere sphere = {
+                .Pos = { 0.0f, 0.0f, 0.0f },
+                .Radius = 0.5f,
+                .Albedo = Color::Orange
+            };
+            m_Scene.Spheres.push_back(sphere);
+        }
+        {
+            Sphere sphere = {
+                .Pos = { 1.0f, 0.0f, -3.0f },
+                .Radius = 1.5f,
+                .Albedo = Color::Teal
+            };
+            m_Scene.Spheres.push_back(sphere);
+        }
     }
 
     virtual void OnUpdate(float ts) override
@@ -24,10 +43,30 @@ public:
     virtual void OnUIRender() override
     {
         {
-            ImGui::Begin("Settings");
+            ImGui::Begin("Info");
 
             ImGui::Text("Last render: %.3fms", m_LastRenderTime);
-            ImGui::SliderFloat3("Light Dir", m_Renderer.lightDir, -2, 2);
+
+            ImGui::End();
+        }
+        {
+            ImGui::Begin("Scene");
+
+            ImGui::SliderFloat3("Light Dir", glm::value_ptr(m_Renderer.LightDir), -2, 2);
+            ImGui::Separator();
+
+            for (int i = 0; auto& sphere : m_Scene.Spheres) {
+                ImGui::PushID(i);
+
+                ImGui::DragFloat3("Position", glm::value_ptr(sphere.Pos), 0.1f);
+                ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+                ImGui::ColorEdit3("Albedo", glm::value_ptr(sphere.Albedo));
+
+                ImGui::Separator();
+
+                ImGui::PopID();
+                i++;
+            }
 
             ImGui::End();
         }
@@ -58,7 +97,7 @@ public:
 
         m_Renderer.OnResize(m_ViewportWidth, m_ViewportHeight);
         m_Camera.OnResize(m_ViewportWidth, m_ViewportHeight);
-        m_Renderer.Render(m_Camera);
+        m_Renderer.Render(m_Scene, m_Camera);
 
         m_LastRenderTime = timer.ElapsedMillis();
     }
@@ -66,6 +105,7 @@ public:
 private:
     Renderer m_Renderer;
     Camera m_Camera;
+    Scene m_Scene;
     uint32_t m_ViewportWidth, m_ViewportHeight;
 
     float m_LastRenderTime = 0;
