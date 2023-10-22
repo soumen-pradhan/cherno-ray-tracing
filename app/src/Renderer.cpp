@@ -73,21 +73,42 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
         .Direction = m_ActiveCamera->GetRayDirections()[x + y * imgWt]
     };
 
-    auto payload = TraceRay(ray);
+    // Reduce the contribution of `lightIntensity` in each sampling.
+    float multiplier = 1.0f;
+    const int bounces = 8;
 
-    if (payload.HitDist < 0.0f) {
-        return glm::vec4(Color::Black, 1.0f);
+    glm::vec3 color = Color::Black;
+    glm::vec3 skyColor = Color::Sky_300;
+
+    for (int i = 0; i < bounces; i++) {
+        auto payload = TraceRay(ray);
+
+        if (payload.HitDist < 0.0f) {
+            color += skyColor * multiplier;
+            break;
+        }
+
+        auto light = glm::normalize(LightDir);
+        float lightIntensity = glm::max(
+            0.0f,
+            glm::dot(payload.WorldNormal, -light));
+
+        auto& sphere = m_ActiveScene->Spheres[payload.ObjectIdx];
+        auto& material = m_ActiveScene->Materials[sphere.MatIdx];
+
+        auto sphereColor = material.Albedo * lightIntensity;
+        color += sphereColor * multiplier;
+
+        multiplier *= 0.7f;
+
+        // Change origin by a small amount. Sample around the hit point.
+        ray.Origin = payload.WorldPos + payload.WorldNormal * 0.0001f;
+        ray.Direction = glm::reflect(
+            ray.Direction,
+            payload.WorldNormal + material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f));
     }
 
-    auto light = glm::normalize(LightDir);
-    float lightIntensity = glm::max(
-        0.0f,
-        glm::dot(payload.WorldNormal, -light));
-
-    auto& sphere = m_ActiveScene->Spheres[payload.ObjectIdx];
-    auto sphereColor = sphere.Albedo * lightIntensity;
-
-    return glm::vec4(sphereColor, 1.0f);
+    return glm::vec4(color, 1.0f);
 }
 
 Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
@@ -114,11 +135,10 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
         // float t0 = (-B + glm::sqrt(discriminant)) / (2.0f * A);
         float closestHit = (-B - glm::sqrt(discriminant)) / (2.0f * A);
 
-        if (/* closestHit > 0.0f &&  */ closestHit < hitDist) {
+        if (closestHit > 0.0f && closestHit < hitDist) {
             hitDist = closestHit;
             closestSphereIdx = idx;
         }
-
     }
 
     if (closestSphereIdx < 0.0f) {

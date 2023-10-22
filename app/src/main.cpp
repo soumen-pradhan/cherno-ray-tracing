@@ -17,22 +17,26 @@ public:
     ExampleLayer()
         : m_Camera(45.0f, 0.1f, 100.0f)
     {
+        // materials
         {
-            Sphere sphere = {
-                .Pos = { 0.0f, 0.0f, 0.0f },
-                .Radius = 0.5f,
-                .Albedo = Color::Orange
-            };
-            m_Scene.Spheres.push_back(sphere);
+            auto& pink = m_Scene.Materials.emplace_back();
+            pink.Albedo = Color::Magenta;
+            pink.Roughness = 0.0f;
+
+            auto& blue = m_Scene.Materials.emplace_back();
+            blue.Albedo = Color::Blue_800;
+            blue.Roughness = 0.1f;
         }
-        {
-            Sphere sphere = {
-                .Pos = { 1.0f, 0.0f, -3.0f },
-                .Radius = 1.5f,
-                .Albedo = Color::Teal
-            };
-            m_Scene.Spheres.push_back(sphere);
-        }
+
+        m_Scene.Spheres.push_back(Sphere {
+            .Pos = { 0.0f, 0.0f, -3.0f },
+            .Radius = 0.8f,
+            .MatIdx = 0 });
+
+        m_Scene.Spheres.push_back(Sphere {
+            .Pos = { 0.0f, -101.0f, -3.0f },
+            .Radius = 100.0f,
+            .MatIdx = 1 });
     }
 
     virtual void OnUpdate(float ts) override
@@ -60,7 +64,21 @@ public:
 
                 ImGui::DragFloat3("Position", glm::value_ptr(sphere.Pos), 0.1f);
                 ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-                ImGui::ColorEdit3("Albedo", glm::value_ptr(sphere.Albedo));
+                ImGui::DragInt("Material", &sphere.MatIdx,
+                    1.0f, 0, (int)m_Scene.Materials.size() - 1);
+
+                ImGui::Separator();
+
+                ImGui::PopID();
+                i++;
+            }
+
+            for (int i = 0; auto& material : m_Scene.Materials) {
+                ImGui::PushID(i);
+
+                ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
+                ImGui::DragFloat("Roughness", &material.Roughness, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Metallic", &material.Metal, 0.01f, 0.0f, 1.0f);
 
                 ImGui::Separator();
 
