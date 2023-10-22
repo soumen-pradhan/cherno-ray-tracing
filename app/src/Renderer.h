@@ -3,6 +3,7 @@
 
 #include "Walnut/Image.h"
 #include <glm/glm.hpp>
+
 #include <memory>
 
 #include "Camera.h"
@@ -60,6 +61,9 @@ private:
 
     const Scene* m_ActiveScene = nullptr;
     const Camera* m_ActiveCamera = nullptr;
+
+    /// @brief Hold image buffer indices for parallel CPU execution.
+    std::vector<uint32_t> m_ImgHori, m_ImgVert;
 };
 
 #endif // RENDERER_H

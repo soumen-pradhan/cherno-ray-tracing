@@ -1,6 +1,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <execution> // execution::par
+#include <numeric> // iota
+
 #include "Color.h"
 #include "Renderer.h"
 #include "Walnut/Random.h"
@@ -21,7 +24,7 @@ static uint32_t Vec2Rgba(const glm::vec4& color)
 
 const float Inf = std::numeric_limits<float>::max();
 
-}
+} // namespace Utils
 
 void Renderer::OnResize(uint32_t width, uint32_t height)
 {
@@ -44,6 +47,11 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 
     delete[] m_AccumData;
     m_AccumData = new glm::vec4[imgBufferLen];
+
+    m_ImgHori.resize(width);
+    m_ImgVert.resize(height);
+    std::iota(std::begin(m_ImgHori), std::end(m_ImgHori), 0);
+    std::iota(std::begin(m_ImgVert), std::end(m_ImgVert), 0);
 }
 
 void Renderer::Render(const Scene& scene, const Camera& camera)
@@ -57,18 +65,20 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
         std::memset(m_AccumData, 0, wt * ht * sizeof(glm::vec4));
     }
 
-    for (uint32_t y = 0; y < ht; y++) {
-        for (uint32_t x = 0; x < wt; x++) {
-            auto color = PerPixel(x, y);
+    std::for_each(std::execution::par, std::begin(m_ImgVert), std::end(m_ImgVert),
+        [this, wt](uint32_t y) {
+            std::for_each(std::execution::par, std::begin(m_ImgHori), std::end(m_ImgHori),
+                [this, y, wt](uint32_t x) {
+                    auto color = PerPixel(x, y);
 
-            auto& accumColor = m_AccumData[x + y * wt];
-            accumColor += color;
+                    auto& accumColor = m_AccumData[x + y * wt];
+                    accumColor += color;
 
-            color = glm::clamp(accumColor / (float)m_FrameIdx, { 0 }, { 1 });
+                    color = glm::clamp(accumColor / (float)m_FrameIdx, { 0 }, { 1 });
 
-            m_ImageData[x + y * wt] = Utils::Vec2Rgba(color);
-        }
-    }
+                    m_ImageData[x + y * wt] = Utils::Vec2Rgba(color);
+                });
+        });
 
     m_FinalImage->SetData(m_ImageData);
 
