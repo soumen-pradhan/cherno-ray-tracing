@@ -41,6 +41,9 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 
     delete[] m_ImageData;
     m_ImageData = new uint32_t[imgBufferLen];
+
+    delete[] m_AccumData;
+    m_AccumData = new glm::vec4[imgBufferLen];
 }
 
 void Renderer::Render(const Scene& scene, const Camera& camera)
@@ -50,16 +53,26 @@ void Renderer::Render(const Scene& scene, const Camera& camera)
     m_ActiveScene = &scene;
     m_ActiveCamera = &camera;
 
+    if (m_FrameIdx == 1) {
+        std::memset(m_AccumData, 0, wt * ht * sizeof(glm::vec4));
+    }
+
     for (uint32_t y = 0; y < ht; y++) {
         for (uint32_t x = 0; x < wt; x++) {
             auto color = PerPixel(x, y);
-            color = glm::clamp(color, { 0 }, { 1 });
+
+            auto& accumColor = m_AccumData[x + y * wt];
+            accumColor += color;
+
+            color = glm::clamp(accumColor / (float)m_FrameIdx, { 0 }, { 1 });
 
             m_ImageData[x + y * wt] = Utils::Vec2Rgba(color);
         }
     }
 
     m_FinalImage->SetData(m_ImageData);
+
+    m_FrameIdx = m_Settings.Accum ? m_FrameIdx + 1 : 1;
 }
 
 glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)

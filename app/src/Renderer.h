@@ -12,6 +12,11 @@
 /// @brief Owns Final Image and its data. Handles creating and resizing image.
 class Renderer {
 public:
+    struct Settings {
+        bool Accum = true;
+    };
+
+public:
     Renderer() = default;
 
     /// @brief Creates image if needed, then resizes it.
@@ -21,6 +26,9 @@ public:
     void Render(const Scene& scene, const Camera& camera);
 
     auto GetFinalImage() const { return m_FinalImage; }
+
+    Settings& GetSettings() { return m_Settings; }
+    void ResetFrameIdx() { m_FrameIdx = 1; }
 
     glm::vec3 LightDir { -1, -1, -1 };
 
@@ -45,6 +53,10 @@ private:
 private:
     std::shared_ptr<Walnut::Image> m_FinalImage;
     uint32_t* m_ImageData = nullptr;
+
+    Settings m_Settings;
+    glm::vec4* m_AccumData = nullptr;
+    uint32_t m_FrameIdx = 1;
 
     const Scene* m_ActiveScene = nullptr;
     const Camera* m_ActiveCamera = nullptr;

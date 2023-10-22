@@ -45,15 +45,27 @@ public:
 
     virtual void OnUpdate(float ts) override
     {
-        m_Camera.OnUpdate(ts);
+        if (m_Camera.OnUpdate(ts)) {
+            m_Renderer.ResetFrameIdx();
+        }
     }
 
     virtual void OnUIRender() override
     {
         {
-            ImGui::Begin("Info");
+            ImGui::Begin("Settings");
 
             ImGui::Text("Last render: %.3fms", m_LastRenderTime);
+
+            if (ImGui::Button("Render")) {
+                Render();
+            }
+
+            ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accum);
+
+            if (ImGui::Button("Reset")) {
+                m_Renderer.ResetFrameIdx();
+            }
 
             ImGui::End();
         }

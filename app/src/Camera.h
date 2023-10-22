@@ -9,8 +9,12 @@ class Camera {
 public:
     Camera(float verticalFOV, float nearClip, float farClip);
 
-    /// @param ts timestep, also called delta-time.
-    void OnUpdate(float ts);
+    /**
+     * @brief Check mouse for rotation and keys for translation.
+     * @param ts timestep, also called delta-time.
+     * @return true if camera moved.
+     */
+    bool OnUpdate(float ts);
     void OnResize(uint32_t width, uint32_t height);
 
     const glm::mat4& GetProjection() const { return m_Projection; }
