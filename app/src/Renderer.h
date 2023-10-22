@@ -16,6 +16,8 @@ public:
 
     /// @brief Creates image if needed, then resizes it.
     void OnResize(uint32_t width, uint32_t height);
+
+    /// @brief Call this in main loop, to create the final image.
     void Render(const Scene& scene, const Camera& camera);
 
     auto GetFinalImage() const { return m_FinalImage; }
@@ -23,6 +25,7 @@ public:
     glm::vec3 LightDir { -1, -1, -1 };
 
 private:
+    /// @brief Description of Hit Point and Object.
     struct HitPayload {
         float HitDist;
         glm::vec3 WorldPos, WorldNormal;
@@ -32,7 +35,7 @@ private:
     glm::vec4 PerPixel(uint32_t x, uint32_t y);
 
     /**
-     * @brief Converts camera ray to a RGBA color.
+     * @brief Converts camera ray to a RGBA color. Calls `ClosestHit` or `Miss`.
      * @param ray Origin and Direction of camera
      */
     HitPayload TraceRay(const Ray& ray);

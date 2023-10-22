@@ -7,10 +7,7 @@
 
 namespace Utils {
 
-/**
- * @brief Convert `vec4` to `uint32_t` ABGR.
- * @param color Values must be clamped to [0,1]
- */
+///@brief Convert RGBA to ABGR. `color` values must be clamped to `[0,1]`.
 static uint32_t Vec2Rgba(const glm::vec4& color)
 {
     auto r = (uint8_t)(color.r * 255.0f);

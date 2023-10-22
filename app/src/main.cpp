@@ -19,24 +19,28 @@ public:
     {
         // materials
         {
-            auto& pink = m_Scene.Materials.emplace_back();
-            pink.Albedo = Color::Magenta;
-            pink.Roughness = 0.0f;
+            m_Scene.Materials.emplace_back(Material {
+                .Albedo = Color::Magenta,
+                .Roughness = 0.0f,
+            });
 
-            auto& blue = m_Scene.Materials.emplace_back();
-            blue.Albedo = Color::Blue_800;
-            blue.Roughness = 0.1f;
+            m_Scene.Materials.emplace_back(Material {
+                .Albedo = Color::Blue_800,
+                .Roughness = 0.1f,
+            });
         }
 
-        m_Scene.Spheres.push_back(Sphere {
-            .Pos = { 0.0f, 0.0f, -3.0f },
+        m_Scene.Spheres.emplace_back(Sphere {
+            .Pos = { 0.0f, -0.2f, -3.0f },
             .Radius = 0.8f,
-            .MatIdx = 0 });
+            .MatIdx = 0,
+        });
 
-        m_Scene.Spheres.push_back(Sphere {
+        m_Scene.Spheres.emplace_back(Sphere {
             .Pos = { 0.0f, -101.0f, -3.0f },
             .Radius = 100.0f,
-            .MatIdx = 1 });
+            .MatIdx = 1,
+        });
     }
 
     virtual void OnUpdate(float ts) override
