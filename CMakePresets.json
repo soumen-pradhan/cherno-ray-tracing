@@ -2,8 +2,8 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "config-x64",
-            "displayName": "config-x64",
+            "name": "vs-2022-x64",
+            "displayName": "vs-2022-x64",
             "description": "Sets Ninja generator, build and install directory",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x86",
@@ -28,7 +28,7 @@
             "name": "build-x64-debug",
             "description": "",
             "displayName": "Cherno-Debug",
-            "configurePreset": "config-x64",
+            "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "Debug"
         },
@@ -36,15 +36,15 @@
             "name": "build-x64-release",
             "description": "",
             "displayName": "Cherno-Release",
-            "configurePreset": "config-x64",
+            "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "RelWithDebInfo"
         },
         {
             "name": "build-x64-dist",
-            "description": "",
+            "description": "A windows gui app, no console",
             "displayName": "Cherno-Dist",
-            "configurePreset": "config-x64",
+            "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "Release"
         }
