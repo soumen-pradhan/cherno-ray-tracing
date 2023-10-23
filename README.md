@@ -1,7 +1,8 @@
 ## TODO
 - [ ] Add Unix support
-- [ ] Rename CMake's Default build types to match Cherno's.
+- [x] Rename CMake's Default build types to match Cherno's
 - [x] Use Win32 API and Libs correctly for WL_DIST/Release
+- [x] Remove vcpkg related varibles to `CMakeUserPresets.json`
 - [ ] Restructure Walnut headers
 - [ ] In Walnut CMakeLists, Vulkan linked lib has to be public, so app can use it. But, imgui is private and still available ??
 - [ ] In app CMakeLists, no windows library is linked, yet the program runs. Is the linking implicit ??
