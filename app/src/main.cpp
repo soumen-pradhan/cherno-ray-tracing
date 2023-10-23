@@ -25,15 +25,27 @@ public:
             });
 
             m_Scene.Materials.emplace_back(Material {
-                .Albedo = Color::Blue_800,
+                .Albedo = Color::Sky_950,
                 .Roughness = 0.1f,
             });
+
+            m_Scene.Materials.emplace_back(Material {
+                .Albedo = Color::Orange_600,
+                .Roughness = 0.1f,
+                .EmissionColor = Color::Orange_600,
+                .EmissionPower = 2.0f });
         }
 
         m_Scene.Spheres.emplace_back(Sphere {
-            .Pos = { 0.0f, -0.2f, -3.0f },
-            .Radius = 0.8f,
+            .Pos = { 0.0f, 0.0f, -3.0f },
+            .Radius = 1.0f,
             .MatIdx = 0,
+        });
+
+        m_Scene.Spheres.emplace_back(Sphere {
+            .Pos = { 2.0f, 0.0f, -3.0f },
+            .Radius = 1.0f,
+            .MatIdx = 2,
         });
 
         m_Scene.Spheres.emplace_back(Sphere {
@@ -94,7 +106,10 @@ public:
 
                 ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
                 ImGui::DragFloat("Roughness", &material.Roughness, 0.01f, 0.0f, 1.0f);
-                ImGui::DragFloat("Metallic", &material.Metal, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Metallic", &material.Metallic, 0.01f, 0.0f, 1.0f);
+
+                ImGui::ColorEdit3("EmissionColor", glm::value_ptr(material.EmissionColor));
+                ImGui::DragFloat("EmissionPower", &material.EmissionPower, 0.1f, 0.0f, FLT_MAX);
 
                 ImGui::Separator();
 

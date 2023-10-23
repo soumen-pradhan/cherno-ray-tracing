@@ -93,46 +93,45 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
         .Direction = m_ActiveCamera->GetRayDirections()[x + y * imgWt]
     };
 
-    // Reduce the contribution of `lightIntensity` in each sampling.
-    float multiplier = 1.0f;
-    const int bounces = 8;
-
-    glm::vec3 color = Color::Black;
     glm::vec3 skyColor = Color::Sky_300;
+
+    // Change the contribution of `light` for each bounce.
+    glm::vec3 contribution { 1.0f };
+    glm::vec3 light = Color::Black;
+
+    const int bounces = 8;
 
     for (int i = 0; i < bounces; i++) {
         auto payload = TraceRay(ray);
 
         if (payload.HitDist < 0.0f) {
-            color += skyColor * multiplier;
+            light += skyColor * contribution;
             break;
         }
-
-        auto light = glm::normalize(LightDir);
-        float lightIntensity = glm::max(
-            0.0f,
-            glm::dot(payload.WorldNormal, -light));
 
         auto& sphere = m_ActiveScene->Spheres[payload.ObjectIdx];
         auto& material = m_ActiveScene->Materials[sphere.MatIdx];
 
-        auto sphereColor = material.Albedo * lightIntensity;
-        color += sphereColor * multiplier;
+        contribution *= material.Albedo;
+        light += material.GetEmission();
 
-        multiplier *= 0.7f;
-
-        // Change origin by a small amount. Sample around the hit point.
+        // Reflect about the normal, then jitter the reflected ray a bit (simulate roughness).
         ray.Origin = payload.WorldPos + payload.WorldNormal * 0.0001f;
-        ray.Direction = glm::reflect(
-            ray.Direction,
-            payload.WorldNormal + material.Roughness * Walnut::Random::Vec3(-0.5f, 0.5f));
+        ray.Direction = glm::normalize(payload.WorldNormal + Walnut::Random::InUnitSphere());
     }
 
-    return glm::vec4(color, 1.0f);
+    return glm::vec4(light, 1.0f);
 }
 
 Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
 {
+    // (bx^2 + by^2)t^2 + (2(axbx + ayby))t + (ax^2 + ay^2 - r^2) = 0
+    // where
+    // a = ray origin
+    // b = ray direction
+    // r = radius
+    // t = hit distance
+
     int closestSphereIdx = -1;
     float hitDist = Utils::Inf;
 
@@ -145,13 +144,14 @@ Renderer::HitPayload Renderer::TraceRay(const Ray& ray)
         float C = glm::dot(origin, origin) - sphere.Radius * sphere.Radius;
 
         // B^2 - 4AC
-        float discriminant = B * B - 4.0F * A * C;
+        float discriminant = B * B - 4.0f * A * C;
 
         if (discriminant < 0.0f) {
             continue;
         }
 
-        // 2 roots: (-B ± √D) / 2A
+        // 2 Quadratic Roots: (-B ± √D) / 2A
+
         // float t0 = (-B + glm::sqrt(discriminant)) / (2.0f * A);
         float closestHit = (-B - glm::sqrt(discriminant)) / (2.0f * A);
 

@@ -9,7 +9,12 @@
 struct Material {
     glm::vec3 Albedo = Color::White;
     float Roughness = 1.0f;
-    float Metal = 0.0f;
+    float Metallic = 0.0f;
+
+    glm::vec3 EmissionColor = Color::Black;
+    float EmissionPower = 0.0f;
+
+    auto GetEmission() const { return EmissionColor * EmissionPower; }
 };
 
 struct Sphere {
