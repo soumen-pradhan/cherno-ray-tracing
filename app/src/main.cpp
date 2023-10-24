@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <nfd.h>
 
 #include "Camera.h"
 #include "Color.h"
@@ -67,16 +68,28 @@ public:
         {
             ImGui::Begin("Settings");
 
-            ImGui::Text("Last render: %.3fms", m_LastRenderTime);
-
-            if (ImGui::Button("Render")) {
-                Render();
+            if (ImGui::Button("Pause/Play")) {
+                m_Pause = !m_Pause;
             }
-
-            ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accum);
+            ImGui::SameLine();
+            ImGui::Text("Last render: %.3fms", m_LastRenderTime);
 
             if (ImGui::Button("Reset")) {
                 m_Renderer.ResetFrameIdx();
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("Accumulate", &m_Renderer.GetSettings().Accum);
+
+            if (ImGui::Button("Save")) {
+                nfdchar_t* outPath = nullptr;
+                nfdresult_t result = NFD_SaveDialog(nullptr, nullptr, &outPath);
+
+                if (result == NFD_OKAY) {
+                    m_Renderer.GetFinalImage()->SaveToBmp(outPath);
+                    free(outPath);
+                } else if (result == NFD_ERROR) {
+                    fmt::println(stderr, "Error: {}", NFD_GetError());
+                }
             }
 
             ImGui::End();
@@ -84,36 +97,40 @@ public:
         {
             ImGui::Begin("Scene");
 
-            ImGui::SliderFloat3("Light Dir", glm::value_ptr(m_Renderer.LightDir), -2, 2);
+            ImGui::Checkbox("Sky", &m_Renderer.Sky);
             ImGui::Separator();
 
-            for (int i = 0; auto& sphere : m_Scene.Spheres) {
-                ImGui::PushID(i);
+            if (ImGui::CollapsingHeader("Objects")) {
+                for (int i = 0; auto& sphere : m_Scene.Spheres) {
+                    ImGui::PushID(i);
 
-                ImGui::DragFloat3("Position", glm::value_ptr(sphere.Pos), 0.1f);
-                ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
-                ImGui::DragInt("Material", &sphere.MatIdx,
-                    1.0f, 0, (int)m_Scene.Materials.size() - 1);
+                    ImGui::DragFloat3("Position", glm::value_ptr(sphere.Pos), 0.1f);
+                    ImGui::DragFloat("Radius", &sphere.Radius, 0.1f);
+                    ImGui::DragInt("Material", &sphere.MatIdx,
+                        1.0f, 0, (int)m_Scene.Materials.size() - 1);
 
-                ImGui::Separator();
+                    ImGui::Separator();
+                    ImGui::Spacing();
 
-                ImGui::PopID();
-                i++;
+                    ImGui::PopID();
+                    i++;
+                }
             }
 
             for (int i = 0; auto& material : m_Scene.Materials) {
-                ImGui::PushID(i);
+                auto materialLabel = fmt::format("Material {}", i);
 
-                ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
-                ImGui::DragFloat("Roughness", &material.Roughness, 0.01f, 0.0f, 1.0f);
-                ImGui::DragFloat("Metallic", &material.Metallic, 0.01f, 0.0f, 1.0f);
+                if (ImGui::CollapsingHeader(materialLabel.c_str())) {
+                    ImGui::ColorEdit3("Albedo", glm::value_ptr(material.Albedo));
+                    ImGui::DragFloat("Roughness", &material.Roughness, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Metallic", &material.Metallic, 0.01f, 0.0f, 1.0f);
 
-                ImGui::ColorEdit3("EmissionColor", glm::value_ptr(material.EmissionColor));
-                ImGui::DragFloat("EmissionPower", &material.EmissionPower, 0.1f, 0.0f, FLT_MAX);
+                    ImGui::ColorEdit3("EmissionColor", glm::value_ptr(material.EmissionColor));
+                    ImGui::DragFloat("EmissionPower", &material.EmissionPower, 0.1f, 0.0f, FLT_MAX);
 
-                ImGui::Separator();
+                    ImGui::Spacing();
+                }
 
-                ImGui::PopID();
                 i++;
             }
 
@@ -137,7 +154,9 @@ public:
             ImGui::PopStyleVar();
         }
 
-        Render();
+        if (!m_Pause) {
+            Render();
+        }
     }
 
     void Render()
@@ -158,6 +177,7 @@ private:
     uint32_t m_ViewportWidth, m_ViewportHeight;
 
     float m_LastRenderTime = 0;
+    bool m_Pause = false;
 };
 
 Walnut::Application* Walnut::CreateApplication(int argc, char** argv)

@@ -105,7 +105,9 @@ glm::vec4 Renderer::PerPixel(uint32_t x, uint32_t y)
         auto payload = TraceRay(ray);
 
         if (payload.HitDist < 0.0f) {
-            light += skyColor * contribution;
+            if (Sky) {
+                light += skyColor * contribution;
+            }
             break;
         }
 

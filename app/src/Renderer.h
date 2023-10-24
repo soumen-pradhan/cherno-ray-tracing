@@ -31,7 +31,7 @@ public:
     Settings& GetSettings() { return m_Settings; }
     void ResetFrameIdx() { m_FrameIdx = 1; }
 
-    glm::vec3 LightDir { -1, -1, -1 };
+    bool Sky = true;
 
 private:
     /// @brief Description of Hit Point and Object.
