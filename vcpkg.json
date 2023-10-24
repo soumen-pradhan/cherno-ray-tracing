@@ -23,6 +23,10 @@
         {
             "name": "stb",
             "version>=": "2023-04-11"
+        },
+        {
+            "name": "nativefiledialog",
+            "version>=": "2022-01-20"
         }
     ],
     "builtin-baseline": "db0473513e5dc73ec6b6f431ff05d2f398eea042"

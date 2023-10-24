@@ -4,38 +4,24 @@
         {
             "name": "vs-2022-x64",
             "displayName": "vs-2022-x64",
-            "description": "Sets Ninja generator, build and install directory",
+            "description": "VS 2022 Template",
             "generator": "Visual Studio 17 2022",
             "toolset": "host=x86",
             "architecture": "x64",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "D:/CS/libraries/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-windows",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true
-            },
-            "environment": {
-                "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1": "1",
-                "DISABLE_LAYER_NV_OPTIMUS_1": "1"
-            },
-            "warnings": {
-                "unusedCli": false
-            }
+            "binaryDir": "${sourceDir}/build/${presetName}"
         }
     ],
     "buildPresets": [
         {
             "name": "build-x64-debug",
-            "description": "",
-            "displayName": "Cherno-Debug",
+            "displayName": "Wl-Debug",
             "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "Debug"
         },
         {
             "name": "build-x64-release",
-            "description": "",
-            "displayName": "Cherno-Release",
+            "displayName": "Wl-Release",
             "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "RelWithDebInfo"
@@ -43,7 +29,7 @@
         {
             "name": "build-x64-dist",
             "description": "A windows gui app, no console",
-            "displayName": "Cherno-Dist",
+            "displayName": "Wl-Dist",
             "configurePreset": "vs-2022-x64",
             "jobs": 10,
             "configuration": "Release"
