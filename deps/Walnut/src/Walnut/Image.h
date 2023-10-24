@@ -28,9 +28,13 @@ namespace Walnut {
 
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
+
+        void SaveToBmp(const char* filename) const;
+
 	private:
 		void AllocateMemory(uint64_t size);
 		void Release();
+        
 	private:
 		uint32_t m_Width = 0, m_Height = 0;
 
@@ -52,6 +56,3 @@ namespace Walnut {
 	};
 
 }
-
-
-

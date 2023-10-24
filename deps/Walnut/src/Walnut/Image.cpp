@@ -8,6 +8,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+#include <fmt/format.h>
 namespace Walnut {
 
 	namespace Utils {
@@ -288,4 +292,18 @@ namespace Walnut {
 		AllocateMemory(m_Width * m_Height * Utils::BytesPerPixel(m_Format));
 	}
 
+	void Image::SaveToBmp(const char* filename) const
+	{
+		VkResult err;
+		VkDevice device = Application::GetDevice();
+
+		void* imgData = nullptr;
+		err = vkMapMemory(device, m_StagingBufferMemory, 0, m_AlignedSize, 0, (void**)(&imgData));
+		check_vk_result(err);
+
+		// Bug: Writing to file may take too long.
+		stbi_write_bmp(filename, m_Width, m_Height, 4, imgData);
+
+		vkUnmapMemory(device, m_StagingBufferMemory);
+	}
 }
