@@ -1,0 +1,47 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "ninja-wasm",
+      "displayName": "ninja-wasm",
+      "description": "Build for browser using emscripten",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "generator": "Ninja Multi-Config",
+      "toolchainFile": "$env{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+      "environment": {
+        "$README": "These environment vars are set by emsdk, or you can add them manually"
+        "$EMSDK": {{path/to/emsdk/git/folder}},
+        "$EMSDK_NODE": "$env{EMSDK}/node/*/bin/node.exe",
+        "$EMSDK_PYTHON": "$env{EMSDK}/python/*/python.exe",
+        "$JAVA_HOME": "$env{EMSDK}/java/*",
+        "$PATH": "$env{EMSDK};$env{EMSDK}/upstream/emscripten;$penv{PATH}"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-debug",
+      "displayName": "Wl-Debug",
+      "configurePreset": "ninja-wasm",
+      "jobs": 8,
+      "configuration": "Debug",
+      "verbose": true
+    },
+    {
+      "name": "build-rel-dbg-info",
+      "displayName": "Wl-Release",
+      "configurePreset": "ninja-wasm",
+      "jobs": 8,
+      "configuration": "RelWithDebInfo",
+      "verbose": true
+    },
+    {
+      "name": "build-release",
+      "displayName": "Wl-Dist",
+      "configurePreset": "ninja-wasm",
+      "jobs": 8,
+      "configuration": "Release",
+      "verbose": true
+    }
+  ]
+}
