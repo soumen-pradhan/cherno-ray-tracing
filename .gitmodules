@@ -1,6 +1,6 @@
 [submodule "deps/imgui"]
 	path = deps/imgui
-	url = https://github.com/ocornut/imgui.git
+	url = https://github.com/soumen-pradhan/imgui.git
 	branch = docking
 [submodule "deps/glfw"]
 	path = deps/glfw
@@ -10,7 +10,8 @@
 	url = https://github.com/g-truc/glm.git
 [submodule "deps/stb"]
 	path = deps/stb
-	url = https://github.com/nothings/stb.git
+	url = https://github.com/soumen-pradhan/stb.git
 [submodule "deps/walnut"]
 	path = deps/walnut
-	url = https://github.com/StudioCherno/Walnut.git
+	url = https://github.com/soumen-pradhan/Walnut.git
+	branch = cmake-support
