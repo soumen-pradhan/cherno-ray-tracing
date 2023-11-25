@@ -1,37 +1,16 @@
-cmake_minimum_required(VERSION 3.14)
-project(cherno-walnut VERSION 0.1.0 LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.22)
+project(cherno-ray-tracing VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+# Disable building glfw docs, tests, examples
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+add_subdirectory(deps/glfw)
 
-find_package(fmt CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
+add_subdirectory(deps/glm)
+add_subdirectory(deps/stb)
+add_subdirectory(deps/imgui)
 
-include(CTest)
-enable_testing()
+add_subdirectory(deps/walnut/Walnut)
 
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    "include"
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    fmt::fmt
-    imgui::imgui
-)
-
-# Ask a compiler to be more demanding
-if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX /permissive-)
-else()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -pedantic -Werror)
-endif()
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+add_subdirectory(app)

@@ -1,0 +1,42 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "ninja-windows",
+      "displayName": "Ninja Windows",
+      "description": "Use Ninja and MSVC",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "generator": "Ninja Multi-Config",
+      "environment": {
+        "DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1": "1",
+        "DISABLE_LAYER_NV_OPTIMUS_1": "1"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-debug",
+      "displayName": "Wl-Debug",
+      "configurePreset": "ninja-windows",
+      "jobs": 8,
+      "configuration": "Debug",
+      "verbose": true
+    },
+    {
+      "name": "build-rel-dbg-info",
+      "displayName": "Wl-Release",
+      "configurePreset": "ninja-windows",
+      "jobs": 8,
+      "configuration": "RelWithDebInfo",
+      "verbose": true
+    },
+    {
+      "name": "build-release",
+      "displayName": "Wl-Dist",
+      "configurePreset": "ninja-windows",
+      "jobs": 8,
+      "configuration": "Release",
+      "verbose": true
+    }
+  ]
+}

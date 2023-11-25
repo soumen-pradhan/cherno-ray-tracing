@@ -1,2 +1,6 @@
-build/
+# IDE stuff
+.vs/
 .vscode/
+
+build/
+output/
